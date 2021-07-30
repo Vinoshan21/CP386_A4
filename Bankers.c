@@ -9,26 +9,28 @@
 #include <semaphore.h>
 
 // Data structures
-int available[];
-int maximum[][];
-int allocated[][];
-int need[][];
+int available[4];
+int maximum[5][4];
+int allocated[5][4];
+int need[5][4];
+char arr[5][8];
 
 // Variables
 pthread_t *threads;
 
 
 // Declare Methods
-void readFile(char *fileName, )
+void readFile(char *fileName);
 
-int main(int argc, char *argv[]) {
-    if (argc != 6){
-        printf("Not enough arguments supplied")
+int main(int argc, char *argv[])
+{
+    if (argc != 5){
+        printf("Not enough arguments supplied");
         return -1;
     }
 
     // Read from file and initialize thread variables
-    readFile(argv[1], &threads)
+    readFile("sample4_in.txt");
 
     char *line = "";
 
@@ -80,17 +82,81 @@ int main(int argc, char *argv[]) {
 }
 
 
-// Read File method
-// Used to intialize the AVAILABLE, THREADS, MAXIMUM methods
-void readFile(char *fileName, Thread **threads){
-
-
-    FILE *f = fopen(fileName, "r");
-	if (!f) {
-		printf(
-				"File can not be opened. Exiting program\n");
-		return NULL;
+void readFile(char* fileName)//use this method in a suitable way to read file
+{
+	FILE *in = fopen(fileName, "r");
+	if(!in)
+	{
+		printf("File can not be opened. Exiting program\n");
 	}
 
+	struct stat st;
+	fstat(fileno(in), &st);
+	char* fileContent = (char*)malloc(((int)st.st_size+1)* sizeof(char));
+	fileContent[0]='\0';	
+	while(!feof(in))
+	{
+		char line[100];
+		if(fgets(line,100,in)!=NULL)
+		{
+			strncat(fileContent,line,strlen(line));
+		}
+	}
+	fclose(in);
 
+	char* command = NULL;
+	int threadCount = 0;
+	char* fileCopy = (char*)malloc((strlen(fileContent)+1)*sizeof(char));
+	strcpy(fileCopy,fileContent);
+	command = strtok(fileCopy,"\r\n");
+	while(command!=NULL)
+	{
+		threadCount++;
+		command = strtok(NULL,"\r\n");
+	}
+
+	char* lines[threadCount];
+	command = NULL;
+	int i=0;
+	command = strtok(fileContent,"\r\n");
+	while(command!=NULL)
+	{
+		lines[i] = malloc(sizeof(command)*sizeof(char));
+		strcpy(lines[i],command);
+		i++;
+		command = strtok(NULL,"\r\n");
+	}
+
+    char arr2[5][8];
+
+	for(int k=0; k<threadCount; k++)
+	{
+		char* token = NULL;
+		int j=0;
+		token =  strtok(lines[k],";");
+		while(token!=NULL)
+		{
+			strcpy(arr[k], token);
+			strcpy(arr2[k], token);
+            allocated[k][j] = 0;
+            j++;
+            token = strtok(NULL, " ");
+
+		}
+	}
+    char * a;
+    for (int i = 0; i < 5; i++)
+    {
+        a = strtok(arr2[i], ",");
+        int j = 0;
+        while (a != NULL)
+        {
+            maximum[i][j] = atoi(a);
+            need[i][j] = atoi(a);
+            a = strtok(NULL, ",");
+            j++;
+        }
+    }
 }
+
+
