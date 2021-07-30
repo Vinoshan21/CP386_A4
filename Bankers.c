@@ -81,9 +81,8 @@ int main(int argc, char *argv[]) {
 
 
 // Read File method
-// Used to intialize the AVAILABLE, THREADS, MAXIMUM methods
+// Used to intialize the THREADS, MAXIMUM methods
 void readFile(char *fileName, Thread **threads){
-
 
     FILE *f = fopen(fileName, "r");
 	if (!f) {
