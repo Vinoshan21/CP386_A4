@@ -93,6 +93,11 @@ int main(int argc, char *argv[])
 
                 if (safety_algorithm == true){
                     printf("State is safe and request is satisfied");
+                    for (int i = 0; i < 5; i++){
+                        for (int j = 0; j < 4; j++){
+                            needed[i][j] = maximum[i][j] - allocated[i][j];
+                        }
+                    }
                 }
 
                 else{
@@ -108,8 +113,33 @@ int main(int argc, char *argv[])
             // Release Resources
             else if (strcmp(first,"RL") == 0){
 
-                printf("RL");
+                int err;
 
+                if (atoi(instr[1]) >= 5){
+                    printf("Index cannot be larget than maximum number of customers\n")
+                }
+                else{
+                    for (int n = 2; n < str_length; n++){
+                        int val = allocated[instr[1][n-2]] - atoi(instr[n]);
+
+                        if (val < 0){
+                            printf("Release denied\n");
+                            err = 1;
+                            break;
+                        }
+                        else{
+                            allocated[instr[1][n-2]] = val;
+                        }
+                        if (n = str_length - 1){
+                            printf("The resources have been released successfully.\n");
+                            for (int i = 0; i < 5; i++){
+                                for (int j = 0; j < 4; j++){
+                                    needed[i][j] = maximum[i][j] - allocated[i][j];
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             // Output Values of data structure
@@ -210,6 +240,7 @@ void readFile(char* fileName)//use this method in a suitable way to read file
 	fclose(in);
 
 	char* command = NULL;
+	int threadCount = 0;
 	char* fileCopy = (char*)malloc((strlen(fileContent)+1)*sizeof(char));
 	strcpy(fileCopy,fileContent);
 	command = strtok(fileCopy,"\r\n");
@@ -240,9 +271,12 @@ void readFile(char* fileName)//use this method in a suitable way to read file
 		token =  strtok(lines[k],";");
 		while(token!=NULL)
 		{
-			maximum[k][j] = atoi(token);
+			strcpy(arr[k], token);
+			strcpy(arr2[k], token);
+            allocated[k][j] = 0;
             j++;
             token = strtok(NULL, " ");
+
 		}
 	}
     char * a;
