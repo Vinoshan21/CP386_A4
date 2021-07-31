@@ -70,7 +70,6 @@ int main(int argc, char *argv[])
 
             // Split the line into different arguments
             char *token = strtok(line, " \n");
-            printf("%s", &token[0]);
             int instr[sizeof(available)/sizeof(available[0])];
 
             int y = 0;
@@ -221,6 +220,11 @@ int main(int argc, char *argv[])
                     }
 
                     sem_destroy(&lock);
+
+                    printf("Safe Sequence is :");
+                    for(int i = 0; i < sizeof(safetyOrder)/sizeof(safetyOrder[0]); i++){
+                        printf(" %d", safetyOrder[i]);
+                    }
 
                 }
                 else{
