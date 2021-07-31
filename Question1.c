@@ -17,12 +17,12 @@ char arr[5][8];
 
 // Variables
 pthread_t threads[5];
-int safetyOrder[];
+int safetyOrder[5];
 
 
 // Declare Methods
 void readFile(char *fileName);
-void safety_algorithm();
+bool safety_algorithm();
 
 int main(int argc, char *argv[])
 {
@@ -40,10 +40,11 @@ int main(int argc, char *argv[])
     // Read from file and initialize thread variables
     readFile("sample4_in.txt");
 
+
     char *line = "";
 
     // While loop to keep asking commands
-    while ((strcmp(line,"Exit") == 0)){
+    while ((strcmp(line,"Exit") != 0)){
         printf ("Enter A Command Or Enter 'Exit' To Quit Program");
         scanf(" %[^\n]", line);
 
@@ -53,8 +54,32 @@ int main(int argc, char *argv[])
         }
         else{
 
+            int str = 0;
+
+            for (int x = 0; line[x] != '\0'; x++){
+                if (line[x] == ' '){
+                    str++;
+                }
+            }
+
             // Split the line into different arguments
             char *token = strtok(line, " ");
+            char *instr;
+
+            int y = 0;
+            if (str >= 2){
+                while (token != NULL && y <= 5){
+                    instr[y] = token;
+                    token = strtok(NULL, " ");
+                    y++;
+                }
+            }
+            else{
+                strcpy(instr[0], line);
+            }
+            int str_length = y;
+            y= 0;
+
             char *first = &token[0];
 
             // Break into if cases for seperate commands
@@ -62,7 +87,21 @@ int main(int argc, char *argv[])
             // Request Resources
             if (strcmp(first,"RQ") == 0){
 
-                printf("RQ");
+                for(int n = 2; n < str_length; n++){
+                    allocated[atoi(instr[1])][n-2] = atoi(instr[n]);
+                }
+
+                if (safety_algorithm == true){
+                    printf("State is safe and request is satisfied");
+                }
+
+                else{
+                    printf("State is not safe and request is denied");
+                    for(int n = 2; n < str_length; n++){
+                        allocated[atoi(instr[1])][n-2] = 0;
+                    }
+                }
+
 
             }
 
@@ -74,9 +113,52 @@ int main(int argc, char *argv[])
             }
 
             // Output Values of data structure
-            else if (strcmp(first,"*") == 0){
+            else if (strcmp(first,"Status") == 0){
 
-                printf("*");
+                printf("Available Resources:\n")
+
+                int temp, temp2;
+
+                for (int i = 0; i < 4; i++){
+                    temp = 0;
+                    for (int j = 0; j < 5; j++){
+                        temp = temp + allocated[i][j];
+                    }
+                    temp2 = available[m] - temp;
+                    available[m] = temp;
+                }
+
+                for (int i = 0; i < 4; i++){
+                    printf("%d ", available[i]);
+                }
+                printf("\n");
+                printf("Maximum Resources:\n");
+
+                for (int i = 0; i < 5; i++){
+                    for (int j = 0; j < 4; j++){
+                        printf("%d ", maximum[i][j]);
+                    }
+                    printf("\n");
+                }
+                printf("\n");
+
+                printf("Allocated Resources:\n");
+
+                for (int i = 0; i < 5; i++){
+                    for (int j = 0; j < 4; j++){
+                        printf("%d ", needed[i][j]);
+                    }
+                    printf("\n");
+                }
+                printf("\n");
+
+                printf("Needed Resources: \n");
+
+                for (int i = 0; i < 5; i++){
+                    for (int j = 0; j < 4; j++){
+                        needed[i][j] = maximum[i][j] - allocated[i][j];
+                    }
+                }
 
             }
 
@@ -84,6 +166,12 @@ int main(int argc, char *argv[])
             else if (strcmp(first,"Run") == 0){
 
                 printf("Run");
+
+            }
+
+            else if (strcmp(first,"Exit") == 0){
+
+                exit();
 
             }
             else{
@@ -122,7 +210,6 @@ void readFile(char* fileName)//use this method in a suitable way to read file
 	fclose(in);
 
 	char* command = NULL;
-	int threadCount = 0;
 	char* fileCopy = (char*)malloc((strlen(fileContent)+1)*sizeof(char));
 	strcpy(fileCopy,fileContent);
 	command = strtok(fileCopy,"\r\n");
@@ -153,12 +240,9 @@ void readFile(char* fileName)//use this method in a suitable way to read file
 		token =  strtok(lines[k],";");
 		while(token!=NULL)
 		{
-			strcpy(arr[k], token);
-			strcpy(arr2[k], token);
-            allocated[k][j] = 0;
+			maximum[k][j] = atoi(token);
             j++;
             token = strtok(NULL, " ");
-
 		}
 	}
     char * a;
@@ -223,7 +307,7 @@ bool safety_algorithm(){
             }
 
             // If all needs for process i have been met
-            if (rCounter == sizeof(available)/sizeof(available)){
+            if (rCounter == sizeof(available)/sizeof(available[0])){
                 finish[i] = true;
                 // Copys tempWork into work
                 for (int k = 0; k < sizeof(available)/sizeof(available[0]); k++){
