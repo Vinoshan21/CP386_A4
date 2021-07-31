@@ -23,6 +23,10 @@ int safetyOrder[5];
 // Declare Methods
 void readFile(char *fileName);
 bool safety_algorithm();
+void *threadRun(void *v);
+
+// Sem Locks
+sem_t lock;
 
 int main(int argc, char *argv[])
 {
@@ -195,7 +199,29 @@ int main(int argc, char *argv[])
             // Find safe sequence and run thread
             else if (strcmp(first,"Run") == 0){
 
-                printf("Run");
+                bool safe = safety_algorithm();
+                if (safe){
+
+                    // Printing the safety sequence
+                    printf("Safe Sequence is :")
+                    for(int i = 0; i < sizeof(safetyOrder)/sizeof(safetyOrder[0])){
+                        printf(" %d", safetyOrder[i])
+                    }
+
+                    // Intialize semaphore
+                    sem_init(&lock, 0, 1);
+
+                    // Creating the threads in the right order
+                    for(int i = 0; i < sizeof(safetyOrder)/sizeof(safetyOrder[0])){
+                        pthread_create(&threads[i], NULL, threadRun,&safetyOrder[i]);
+                    }
+
+                    sem_destroy(&lock);
+
+                }
+                else{
+                    printf("Program is not in a safe state");
+                }
 
             }
 
@@ -383,6 +409,53 @@ bool safety_algorithm(){
         }
 
     }
+}
+
+void *threadRun(void *v){
+    
+    // lock semaphore
+    sem_wait(&lock);
+
+    // Get which customer to run
+    int num = *((int *) v);
+
+    printf("Customer/Thread %d\n", num);
+
+    // Printing allocated resources
+    printf("Allocated resources: ");
+    for(int i = 0; i < sizeof(allocated)/sizeof(allocated[0])){
+        printf(" %d", allocated[num][i]);
+    }
+    printf("\n");
+
+    // Printing need
+    for(int i = 0; i < sizeof(need)/sizeof(need[0])){
+        printf(" %d", need[num][i]);
+    }
+    printf("\n")
+
+    // Printing available
+    for(int i = 0; i < sizeof(available)/sizeof(available[0])){
+        printf(" %d", available[i]);
+    }
+    printf("\n")
+
+    printf("Thread has started\n");
+    printf("Thread has finished\n");
+    printf('Thread is releasing resources\n');
+
+    // Release method ------------------------
 
 
+    //---------------------------------------
+
+    // New available
+    for(int i = 0; i < sizeof(available)/sizeof(available[0])){
+        printf(" %d", available[i]);
+    }
+    printf("\n")
+
+    sem_post(&lock);
+
+    pthread_exit(0);
 }
