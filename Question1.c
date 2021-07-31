@@ -45,12 +45,14 @@ int main(int argc, char *argv[])
     readFile("sample4_in.txt");
 
 
-    char *line = "";
+    char line[100];
 
     // While loop to keep asking commands
     while ((strcmp(line,"Exit") != 0)){
-        printf ("Enter A Command Or Enter 'Exit' To Quit Program");
-        scanf(" %[^\n]", line);
+        printf ("Enter A Command Or Enter 'Exit' To Quit Program\n");
+        //scanf(" %[^\n]", line);
+        fgets(line, 100, stdin);
+        // line = "Run";
 
         // If user Inputted empty String
         if ((strcmp(line,"") == 0)){
@@ -67,19 +69,17 @@ int main(int argc, char *argv[])
             }
 
             // Split the line into different arguments
-            char *token = strtok(line, " ");
-            char *instr;
+            char *token = strtok(line, " \n");
+            printf("%s", &token[0]);
+            int instr[sizeof(available)/sizeof(available[0])];
 
             int y = 0;
             if (str >= 2){
-                while (token != NULL && y <= 5){
-                    instr[y] = token;
-                    token = strtok(NULL, " ");
-                    y++;
+                for (int i = 2; i < sizeof(available)/sizeof(available[0]) + 1; i++){
+                    instr[y] = atoi(&token[i]);
+                     y++;
                 }
-            }
-            else{
-                strcpy(instr[0], line);
+
             }
             int str_length = y;
             y= 0;
@@ -92,22 +92,22 @@ int main(int argc, char *argv[])
             if (strcmp(first,"RQ") == 0){
 
                 for(int n = 2; n < str_length; n++){
-                    allocated[atoi(instr[1])][n-2] = atoi(instr[n]);
+                    allocated[instr[1]][n-2] = instr[n];
                 }
 
-                if (safety_algorithm == true){
-                    printf("State is safe and request is satisfied");
+                if (safety_algorithm()){
+                    printf("State is safe and request is satisfied\n");
                     for (int i = 0; i < 5; i++){
                         for (int j = 0; j < 4; j++){
-                            needed[i][j] = maximum[i][j] - allocated[i][j];
+                            need[i][j] = maximum[i][j] - allocated[i][j];
                         }
                     }
                 }
 
                 else{
-                    printf("State is not safe and request is denied");
+                    printf("State is not safe and request is denied\n");
                     for(int n = 2; n < str_length; n++){
-                        allocated[atoi(instr[1])][n-2] = 0;
+                        allocated[instr[1]][n-2] = 0;
                     }
                 }
 
@@ -119,12 +119,12 @@ int main(int argc, char *argv[])
 
                 int err;
 
-                if (atoi(instr[1]) >= 5){
-                    printf("Index cannot be larget than maximum number of customers\n")
+                if (instr[1] >= 5){
+                    printf("Index cannot be larget than maximum number of customers\n");
                 }
                 else{
                     for (int n = 2; n < str_length; n++){
-                        int val = allocated[instr[1][n-2]] - atoi(instr[n]);
+                        int val = allocated[instr[1]][n-2] - instr[n];
 
                         if (val < 0){
                             printf("Release denied\n");
@@ -132,34 +132,38 @@ int main(int argc, char *argv[])
                             break;
                         }
                         else{
-                            allocated[instr[1][n-2]] = val;
+                            allocated[instr[1]][n-2] = val;
                         }
-                        if (n = str_length - 1){
+                        if (n == (str_length - 1)){
                             printf("The resources have been released successfully.\n");
                             for (int i = 0; i < 5; i++){
                                 for (int j = 0; j < 4; j++){
-                                    needed[i][j] = maximum[i][j] - allocated[i][j];
+                                    need[i][j] = maximum[i][j] - allocated[i][j];
                                 }
                             }
+                        }
+                        if (err == 1){
+                            continue;
                         }
                     }
                 }
             }
 
             // Output Values of data structure
-            else if (strcmp(first,"Status") == 0){
+            else if (strcmp(&token[0],"Status") == 0){
 
-                printf("Available Resources:\n")
+                printf("Available Resources:\n");
 
-                int temp, temp2;
+                int temp;
+                int temp2;
 
                 for (int i = 0; i < 4; i++){
                     temp = 0;
                     for (int j = 0; j < 5; j++){
                         temp = temp + allocated[i][j];
                     }
-                    temp2 = available[m] - temp;
-                    available[m] = temp;
+                    temp2 = available[i] - temp;
+                    available[i] = temp2;
                 }
 
                 for (int i = 0; i < 4; i++){
@@ -180,7 +184,7 @@ int main(int argc, char *argv[])
 
                 for (int i = 0; i < 5; i++){
                     for (int j = 0; j < 4; j++){
-                        printf("%d ", needed[i][j]);
+                        printf("%d ", allocated[i][j]);
                     }
                     printf("\n");
                 }
@@ -190,7 +194,7 @@ int main(int argc, char *argv[])
 
                 for (int i = 0; i < 5; i++){
                     for (int j = 0; j < 4; j++){
-                        needed[i][j] = maximum[i][j] - allocated[i][j];
+                        need[i][j] = maximum[i][j] - allocated[i][j];
                     }
                 }
 
@@ -203,16 +207,16 @@ int main(int argc, char *argv[])
                 if (safe){
 
                     // Printing the safety sequence
-                    printf("Safe Sequence is :")
-                    for(int i = 0; i < sizeof(safetyOrder)/sizeof(safetyOrder[0])){
-                        printf(" %d", safetyOrder[i])
+                    printf("Safe Sequence is :");
+                    for(int i = 0; i < sizeof(safetyOrder)/sizeof(safetyOrder[0]); i++){
+                        printf(" %d", safetyOrder[i]);
                     }
 
                     // Intialize semaphore
                     sem_init(&lock, 0, 1);
 
                     // Creating the threads in the right order
-                    for(int i = 0; i < sizeof(safetyOrder)/sizeof(safetyOrder[0])){
+                    for(int i = 0; i < sizeof(safetyOrder)/sizeof(safetyOrder[0]); i++){
                         pthread_create(&threads[i], NULL, threadRun,&safetyOrder[i]);
                     }
 
@@ -227,11 +231,11 @@ int main(int argc, char *argv[])
 
             else if (strcmp(first,"Exit") == 0){
 
-                exit();
+                exit(0);
 
             }
             else{
-                printf("Invalid Command");
+                printf("Invalid Command\n");
             }
 
         }
@@ -423,39 +427,39 @@ void *threadRun(void *v){
 
     // Printing allocated resources
     printf("Allocated resources: ");
-    for(int i = 0; i < sizeof(allocated)/sizeof(allocated[0])){
+    for(int i = 0; i < sizeof(allocated)/sizeof(allocated[0]); i++){
         printf(" %d", allocated[num][i]);
     }
     printf("\n");
 
     // Printing need
-    for(int i = 0; i < sizeof(need)/sizeof(need[0])){
+    for(int i = 0; i < sizeof(need)/sizeof(need[0]); i++){
         printf(" %d", need[num][i]);
     }
-    printf("\n")
+    printf("\n");
 
     // Printing available
-    for(int i = 0; i < sizeof(available)/sizeof(available[0])){
+    for(int i = 0; i < sizeof(available)/sizeof(available[0]); i++){
         printf(" %d", available[i]);
     }
-    printf("\n")
+    printf("\n");
 
     printf("Thread has started\n");
     printf("Thread has finished\n");
-    printf('Thread is releasing resources\n');
+    printf("Thread is releasing resources\n");
 
     // Release method
     for (int i = 0; i < sizeof(available)/sizeof(available[0]); i++){
         available[i] += allocated[num][i];
-        allocated[num][i] = 0
+        allocated[num][i] = 0;
         need[num][i] = maximum[num][i];
     }
 
     // New available
-    for(int i = 0; i < sizeof(available)/sizeof(available[0])){
+    for(int i = 0; i < sizeof(available)/sizeof(available[0]);i++){
         printf(" %d", available[i]);
     }
-    printf("\n")
+    printf("\n");
 
     sem_post(&lock);
 
