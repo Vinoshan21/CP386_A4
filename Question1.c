@@ -16,11 +16,13 @@ int need[5][4];
 char arr[5][8];
 
 // Variables
-pthread_t *threads;
+pthread_t threads[5];
+int safetyOrder[];
 
 
 // Declare Methods
 void readFile(char *fileName);
+void safety_algorithm();
 
 int main(int argc, char *argv[])
 {
@@ -29,48 +31,63 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    available[0] = atoi(argv[1]);
+    available[1] = atoi(argv[2]);
+    available[2] = atoi(argv[3]);
+    available[3] = atoi(argv[4]);
+
+
     // Read from file and initialize thread variables
     readFile("sample4_in.txt");
 
     char *line = "";
 
     // While loop to keep asking commands
-    while (line != "quit"){
-        printf ("Enter A Command Or Enter 'quit' To Quit Program");
-        fgets(line);
+    while ((strcmp(line,"Exit") == 0)){
+        printf ("Enter A Command Or Enter 'Exit' To Quit Program");
+        scanf(" %[^\n]", line);
 
         // If user Inputted empty String
-        if (line == ""){
+        if ((strcmp(line,"") == 0)){
             printf("Invalid Command");
         }
         else{
 
             // Split the line into different arguments
             char *token = strtok(line, " ");
+            char *first = &token[0];
 
             // Break into if cases for seperate commands
 
             // Request Resources
-            if (token[0] == "RQ"){
+            if (strcmp(first,"RQ") == 0){
+
+                printf("RQ");
 
             }
 
             // Release Resources
-            elif (token[0] == "RL"){
+            else if (strcmp(first,"RL") == 0){
+
+                printf("RL");
 
             }
 
             // Output Values of data structure
-            elif (token[0] == "*"){
+            else if (strcmp(first,"*") == 0){
+
+                printf("*");
 
             }
 
             // Find safe sequence and run thread
-            elif (token[0] == "Run"){
+            else if (strcmp(first,"Run") == 0){
+
+                printf("Run");
 
             }
             else{
-                printf("Invalid Command")
+                printf("Invalid Command");
             }
 
         }
@@ -157,4 +174,97 @@ void readFile(char* fileName)//use this method in a suitable way to read file
             j++;
         }
     }
+}
+
+bool safety_algorithm(){
+    int work[sizeof(available)/sizeof(available[0])];
+    bool finish[sizeof(threads)/sizeof(threads[0])];
+
+    bool added = false;
+    int customersAdded = 0;
+
+    // Copys available into work
+    for (int k = 0; k < sizeof(available)/sizeof(available[0]); k++){
+        work[k] = available[k];
+    }
+
+    for (int i = 0; i < sizeof(finish)/sizeof(finish[0]); i++){
+        finish[i] = false;
+    }
+
+    int i = 0;
+    // Keeps looping to find safe sequence
+    while (true){
+
+        // If the customer has not already been run
+        if (finish[i] == false){
+
+            int tempWork[sizeof(work)/sizeof(work[0])];
+            // Copys work into tempWork
+            for (int k = 0; k < sizeof(available)/sizeof(available[0]); k++){
+                tempWork[k] = work[k];
+            }
+
+
+            int rCounter = 0;
+
+            // Loop through each resource
+            for (int j = 0; j < sizeof(available)/sizeof(available[0]); j++){
+
+                // Checking if the needed resource is less or equal to available
+                if (need[i][j] <= tempWork[j]){
+                    tempWork[j] = tempWork[j] + allocated[i][j];
+                    rCounter++;
+                }
+                // If the needed amount is greater than available
+                else{
+                    break;
+                }
+            }
+
+            // If all needs for process i have been met
+            if (rCounter == sizeof(available)/sizeof(available)){
+                finish[i] = true;
+                // Copys tempWork into work
+                for (int k = 0; k < sizeof(available)/sizeof(available[0]); k++){
+                    work[k] = tempWork[k];
+                }
+                safetyOrder[customersAdded] = i;
+                customersAdded++;
+                added = true;
+            }
+
+            int finishCounter = 0;
+            // Check if all processes have been accounted for
+            for (int j = 0; j < sizeof(threads)/sizeof(threads[0]); j++){
+                if (finish[j]){
+                    finishCounter++;
+                }
+            }
+
+            // If all processes can be run
+            if (finishCounter == sizeof(threads)/sizeof(threads[0])){
+                return true;
+            }
+        }
+
+        i++;
+
+        // It has iterated through all the customers, reset required
+        if (i == sizeof(threads)/sizeof(threads[0])){
+            i = 0;
+
+            // It has went through an iteration without finding a process it can run therefore
+            // the system is not in a safe state
+            if(added == false){
+                return false;
+            }
+            else{
+                added = false;
+            }
+        }
+
+    }
+
+
 }
