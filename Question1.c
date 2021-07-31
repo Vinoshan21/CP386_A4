@@ -444,10 +444,12 @@ void *threadRun(void *v){
     printf("Thread has finished\n");
     printf('Thread is releasing resources\n');
 
-    // Release method ------------------------
-
-
-    //---------------------------------------
+    // Release method
+    for (int i = 0; i < sizeof(available)/sizeof(available[0]); i++){
+        available[i] += allocated[num][i];
+        allocated[num][i] = 0
+        need[num][i] = maximum[num][i];
+    }
 
     // New available
     for(int i = 0; i < sizeof(available)/sizeof(available[0])){
