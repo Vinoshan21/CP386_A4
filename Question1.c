@@ -193,8 +193,9 @@ int main(int argc, char *argv[])
 
                 for (int i = 0; i < 5; i++){
                     for (int j = 0; j < 4; j++){
-                        need[i][j] = maximum[i][j] - allocated[i][j];
+                        printf("%d ", need[i][j]);
                     }
+                    printf("\n");
                 }
 
             }
