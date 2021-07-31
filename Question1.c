@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
 
         // If user Inputted empty String
         if ((strcmp(line,"") == 0)){
-            printf("Invalid Command");
+            printf("Invalid Command\n");
         }
         else{
 
@@ -235,12 +235,12 @@ int main(int argc, char *argv[])
                     sem_destroy(&lock);
                 }
                 else{
-                    printf("Program is not in a safe state");
+                    printf("Program is not in a safe state\n");
                 }
 
             }
 
-            else if (strcmp(first,"Exit") == 0){
+            else if (strcmp(line,"Exit") == 0){
 
                 exit(0);
 
